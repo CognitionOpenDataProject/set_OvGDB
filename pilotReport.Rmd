@@ -8,7 +8,6 @@ output:
 
 #### Article ID: OvGDB
 #### Pilot: Richie Lenne
-#### Co-pilot: Tom Hardwicke  
 #### Start date: 05/23/2017  
 #### End date: 05/23/2017  
 
