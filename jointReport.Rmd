@@ -10,7 +10,7 @@ output:
 #### Pilot: Richie Lenne
 #### Co-pilot: Gustav Nilsonne
 #### Start date: 05/23/2017  
-#### End date: 05/23/2017  
+#### End date: 08/10/2017  
 
 -------
 
@@ -26,8 +26,6 @@ For this article please focus on findings reported for Experiment 1 in Section 2
 
 > Participants were more likely to say that an agent ought to keep a promise they can't keep in the high blame condition (M = 8.90, SD = 39.16) than in the low blame condition (M = -17.84, SD = 33.31), t(79) = -4.62, p < 0.001, d = 0.74. Importantly, the judgments in the high blame condition were significantly above the midpoint, t(79) = 2.03, p = 0.045, d = 0.65. On the whole, 31% of participants in the low blame condition and 60% of subjects in the high blame condition gave answers above the midpoint. To check for order effects, we compared the ratings of participants who read low blame first (n = 42) and high blame first. There were no significant order effects for whether participants read low blame first (M = -22.05, SD = 32.89) or second (M = -13.18, SD = 33.59; p = .24) or high blame first (M = 9.57, SD = 40.96) or second (M = 8.16, SD = 37.61; p = .87).
 
-**Note**
-Make sure to use the original article for additional context and information about any necessary pre-processing steps. Also check for additional supplementary materials that may provide supporting documentation for analysis procedures.
 ------
 
 ```{r global_options, include=FALSE}
@@ -99,7 +97,7 @@ compareValues(reportedValue = .31, obtainedValue = 0.2625)
 ### Inferential statistics  
 > Participants were more likely to say that an agent ought to keep a promise they can't keep in the high blame condition (M = 8.90, SD = 39.16) than in the low blame condition (M = -17.84, SD = 33.31), t(79) = -4.62, p < 0.001, d = 0.74.  
 
-**error in D**
+**minor error in D**
 ```{r}
 # paired sample t-test
 (tx <- t.test(dat$Low.Blame, dat$High.Blame, paired = T))
@@ -165,8 +163,6 @@ The first large numerical error is related to the percent of people in the Low B
 The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  
 
 There are errors in the two effect sizes reported. The likely cause is not apparent.
-
-There is an anomaly in the order of presentation. The original reports Low Blame was displayed first for n = 42, which requires that High Blame be first for n = 38, however looking at these data High Blame was also presented first for n = 42. Not sure how to summarize this for our purposes because the numerical value reported is accurate.
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
