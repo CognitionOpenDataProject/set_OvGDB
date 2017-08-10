@@ -42,6 +42,7 @@ library(readxl) # import excel files
 library(CODreports) # custom report functions
 library(psych) # descriptive
 library(powerAnalysis) # cross-check effect sizes
+library(effsize)
 ```
 
 ## Step 2: Load data
@@ -98,6 +99,7 @@ compareValues(reportedValue = .31, obtainedValue = 0.2625)
 > Participants were more likely to say that an agent ought to keep a promise they can't keep in the high blame condition (M = 8.90, SD = 39.16) than in the low blame condition (M = -17.84, SD = 33.31), t(79) = -4.62, p < 0.001, d = 0.74.  
 
 **minor error in D**
+
 ```{r}
 # paired sample t-test
 (tx <- t.test(dat$Low.Blame, dat$High.Blame, paired = T))
@@ -109,43 +111,119 @@ compareValues(reportedValue = 0.74, obtainedValue = 0.731039)
 > Importantly, the judgments in the high blame condition were significantly above the midpoint, t(79) = 2.03, p = 0.045, d = 0.65.  
 
 **Error in D**
-```{r}
-(tx <- t.test(dat$High.Blame))
-# one sample Cohen's D = mean/sd
-mean(dat$High.Blame)/sd(dat$High.Blame)
-compareValues(reportedValue = 0.65, obtainedValue = 0.2272631)
 
-# GN: The above approach should be correct. Just to double-check, here is another way of calculating it:
-d_new <- ES.t.one(n = length(dat$High.Blame), t = tx$statistic, alternative = c("two.sided"))
-d_new$d
+```{r}
+tx <- t.test(dat$High.Blame)
+# one sample Cohen's D = mean/sd
+d.high <- mean(dat$High.Blame)/sd(dat$High.Blame)
+compareValues(reportedValue = 0.65, obtainedValue = d.high)
 ```
+
+GN: The above approach should be correct. Just to double-check, here is another way of calculating it
+
+```{r}
+d_new <- ES.t.one(n = length(dat$High.Blame), t = tx$statistic, alternative = c("two.sided"))
+
+d_new$d %>% as.numeric() %>% round(digits = 2)
+```
+
+Other ways to compute Cohen's $d$:
+
+For a paired sample t test.
+
+```{r}
+dat.diff <- dat %>% mutate(diff_score = Low.Blame - High.Blame)
+
+mean_diff <- mean(dat.diff$diff_score) # mean of the differences
+sd_diff <- sd(dat.diff$diff_score) # standard deviation of the differences 
+
+ES.t.paired(md = mean_diff, sd = sd_diff)$d %>% round(digits = 2)
+```
+
+You get a higher effect size estimate that is closer to the reported value, but does not match.
+
+Next, we try computing $d$ treating the analysis as an independent samples t-test. 
+
+```{r}
+m1 <- mean(dat$High.Blame)
+sd1 <- sd(dat$High.Blame)
+m2 <- mean(dat$Low.Blame)
+sd2 <- sd(dat$Low.Blame)
+
+ES.t.two(m1 = m1, m2 = m2, sd1 = sd1, sd2 = sd2, n1 = 80, n2 = 80)$d %>% round(digits = 2)
+```
+
+We get closer to the reported value, but the effect size is now larger than the reported value.
 
 > There were no significant order effects for whether participants read low blame first (M = -22.05, SD = 32.89) or second (M = -13.18, SD = 33.59; p = .24) or high blame first (M = 9.57, SD = 40.96) or second (M = 8.16, SD = 37.61; p = .87).  
 
 **correct**
 
+Low blame:
+
 ```{r}
 #t-test
 low1 <- as.numeric(dat[dat$Display.Order==1, c("Low.Blame")])
 low2 <- as.vector(dat[dat$Display.Order==2, c("Low.Blame")])
-t.test(low1,low2)
+t.low <- t.test(low1,low2)
+t.low
+
 # descriptives
-dat %>%
+low.descrip <- dat %>%
   group_by(Display.Order) %>%
   summarize(n=length(Low.Blame),
             mean=mean(Low.Blame,na.rm=T),
             sd=sd(Low.Blame,na.rm=T))
 
+low.descrip
+```
+
+Compare values for the low condition.
+
+```{r}
+# first
+compareValues(reportedValue = -22.05, obtainedValue = low.descrip$mean[1])
+compareValues(reportedValue = 32.89, obtainedValue = low.descrip$sd[1])
+
+# second
+compareValues(reportedValue = -13.18, obtainedValue = low.descrip$mean[2])
+compareValues(reportedValue = 33.59, obtainedValue = low.descrip$sd[2])
+
+# p.value
+compareValues(reportedValue = p = .24, obtainedValue = t.low$p.value)
+```
+
+Compute values for the high blame condition.
+
+```{r}
 # t-test
 high1 <- as.numeric(dat[dat$Display.Order==1, c("High.Blame")])
 high2 <- as.vector(dat[dat$Display.Order==2, c("High.Blame")])
-t.test(high1,high2)
+t.high <- t.test(high1,high2)
+t.high
+
 # descriptives
-dat %>%
+high.descrip <- dat %>%
   group_by(Display.Order) %>%
   summarize(n=length(High.Blame),
             mean=mean(High.Blame,na.rm=T),
             sd=sd(High.Blame,na.rm=T))
+high.descrip
+```
+
+Compare values for the high blame condition.
+
+```{r}
+# first
+compareValues(reportedValue = 9.57, obtainedValue = high.descrip$mean[1])
+compareValues(reportedValue = 40.96, obtainedValue = high.descrip$sd[1])
+
+# second
+compareValues(reportedValue = 8.16, obtainedValue = high.descrip$mean[2])
+compareValues(reportedValue = 37.61, obtainedValue = high.descrip$sd[2])
+
+# p.value
+compareValues(reportedValue = .87, obtainedValue = t.high$p.value)
 ```
 
 ## Step 5: Conclusion
@@ -159,10 +237,9 @@ codReport(Report_Type = 'joint',
           Minor_Numerical_Errors = 1)
 ```
 
-The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint.
-The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  
+The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint. The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  
 
-There are errors in the two effect sizes reported. The likely cause is not apparent.
+There are errors in the two effect sizes reported. The likely cause is not apparent, but erhaps could be a copy and paste error or that they computed the Cohen's d for an independent sample or paired sample t-test. What's interesting is that the first Cohen's d calculation is quite close (off by 1.35%), but the second Cohen's is quite far off (64.62%).
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
