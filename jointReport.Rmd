@@ -8,9 +8,9 @@ output:
 
 #### Article ID: OvGDB
 #### Pilot: Richie Lenne
-#### Co-pilot: Gustav Nilsonne
+#### Co-pilot: Gustav Nilsonne and Kyle MacDonald
 #### Start date: 05/23/2017  
-#### End date: 08/10/2017  
+#### End date: 08/30/2017  
 
 -------
 
@@ -85,14 +85,21 @@ dat %>% select(Low.Blame, High.Blame) %>% describe()
 
 > On the whole, 31% of participants in the low blame condition and 60% of subjects in the high blame condition gave answers above the midpoint.  
 
-**error in low blame, they reported percent greater than or equal midpoint, instead of greater than**
-
 ```{r}
 # scale midpoint is 0
 dat %>% select(Low.Blame) %>% filter(Low.Blame>0) %>% nrow() / dat %>% select(Low.Blame) %>% nrow()
 dat %>% select(High.Blame) %>% filter(High.Blame>0) %>% nrow() / dat %>% select(High.Blame) %>% nrow()
 
 compareValues(reportedValue = .31, obtainedValue = 0.2625)
+```
+
+**error in low blame, they reported percent greater than or equal midpoint, instead of greater than**
+
+NB - author confirmed this was the case - the article should have said greater than or equal to midpoint, as below:
+
+```{r}
+dat %>% select(Low.Blame) %>% filter(Low.Blame>=0) %>% nrow() / dat %>% select(Low.Blame) %>% nrow()
+compareValues(reportedValue = .31, obtainedValue = 0.3125)
 ```
 
 ### Inferential statistics  
@@ -110,14 +117,16 @@ compareValues(reportedValue = 0.74, obtainedValue = 0.731039)
 
 > Importantly, the judgments in the high blame condition were significantly above the midpoint, t(79) = 2.03, p = 0.045, d = 0.65.  
 
-**Error in D**
-
 ```{r}
 tx <- t.test(dat$High.Blame)
 # one sample Cohen's D = mean/sd
 d.high <- mean(dat$High.Blame)/sd(dat$High.Blame)
 compareValues(reportedValue = 0.65, obtainedValue = d.high)
 ```
+
+**Error in D**
+
+NB - author confirmed there is an error here - the correct value is .23. The source of the error is unclear.
 
 GN: The above approach should be correct. Just to double-check, here is another way of calculating it
 
@@ -190,7 +199,7 @@ compareValues(reportedValue = -13.18, obtainedValue = low.descrip$mean[2])
 compareValues(reportedValue = 33.59, obtainedValue = low.descrip$sd[2])
 
 # p.value
-compareValues(reportedValue = p = .24, obtainedValue = t.low$p.value)
+compareValues(reportedValue = .24, obtainedValue = t.low$p.value)
 ```
 
 Compute values for the high blame condition.
@@ -233,13 +242,15 @@ codReport(Report_Type = 'joint',
           Article_ID = 'OvGDB', 
           Insufficient_Information_Errors = 0,
           Decision_Errors = 0, 
-          Major_Numerical_Errors = 2, 
-          Minor_Numerical_Errors = 1)
+          Major_Numerical_Errors = 1, 
+          Minor_Numerical_Errors = 1,
+          Author_Assistance = T)
 ```
 
-The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint. The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  
+The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint. The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  NB - authors have confirmed this.
 
-There are errors in the two effect sizes reported. The likely cause is not apparent, but erhaps could be a copy and paste error or that they computed the Cohen's d for an independent sample or paired sample t-test. What's interesting is that the first Cohen's d calculation is quite close (off by 1.35%), but the second Cohen's is quite far off (64.62%).
+There is a major error for one of the effect sizes. The likely cause is not apparent, but perhaps could be a copy and paste error. NB - authors have confirmed this is an error, but do not know the source.
+
 
 ```{r session_info, include=TRUE, echo=TRUE, results='markup'}
 devtools::session_info()
