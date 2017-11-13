@@ -1,0 +1,274 @@
+---
+title: "COD Reproducibility Report"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+#### Article ID: OvGDB
+#### Pilot: Richie Lenne
+#### Co-pilot: Gustav Nilsonne and Kyle MacDonald
+#### Start date: May 23 2017  
+#### End date: Aug 30 2017
+#### Final verification: Tom Hardwicke
+#### Date: Nov 12 2017
+
+-------
+
+#### Methods summary: 
+Using a within-subject design, participants read two versions of a story about a person, Adams, who failed to show up to a scheduled meeting. Language in the story was manipulated such that Adams was personally at fault for missing the meeting in one version (high blame condition), and less personally at fault in the second version (low blame condition). After each version of the story participants rated the extent to which Adams ought to have met their friend. 
+
+------
+
+#### Target outcomes: 
+For this article please focus on findings reported for Experiment 1 in Section 2.2. Specifically, you should attempt to reproduce all descriptive and inferential analyses reported in the text below and associated tables/figures:
+
+> 2.2. Results and discussion
+
+> Participants were more likely to say that an agent ought to keep a promise they can't keep in the high blame condition (M = 8.90, SD = 39.16) than in the low blame condition (M = -17.84, SD = 33.31), t(79) = -4.62, p < 0.001, d = 0.74. Importantly, the judgments in the high blame condition were significantly above the midpoint, t(79) = 2.03, p = 0.045, d = 0.65. On the whole, 31% of participants in the low blame condition and 60% of subjects in the high blame condition gave answers above the midpoint. To check for order effects, we compared the ratings of participants who read low blame first (n = 42) and high blame first. There were no significant order effects for whether participants read low blame first (M = -22.05, SD = 32.89) or second (M = -13.18, SD = 33.59; p = .24) or high blame first (M = 9.57, SD = 40.96) or second (M = 8.16, SD = 37.61; p = .87).
+
+------
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, warning=FALSE, message=FALSE)
+
+# prepare an empty report object, we will update this each time we run compareValues2()
+reportObject <- data.frame("Article_ID" = NA, "valuesChecked" = 0, "eyeballs" = 0, "Total_df" = 0, "Total_p" = 0, "Total_mean" = 0, "Total_sd" = 0, "Total_se" = 0, "Total_ci" = 0, "Total_bf" = 0, "Total_t" = 0, "Total_F" = 0, "Total_es" = 0, "Total_median" = 0, "Total_irr" = 0, "Total_r" = 0, "Total_z" = 0, "Total_coeff" = 0, "Total_n" = 0, "Total_x2" = 0, "Total_other" = 0, "Insufficient_Information_Errors" = 0, "Decision_Errors" = 0, "Major_Numerical_Errors" = 0, "Minor_Numerical_Errors" = 0, "Major_df" = 0, "Major_p" = 0, "Major_mean" = 0, "Major_sd" = 0, "Major_se" = 0, "Major_ci" = 0, "Major_bf" = 0, "Major_t" = 0, "Major_F" = 0, "Major_es" = 0, "Major_median" = 0, "Major_irr" = 0, "Major_r" = 0, "Major_z" = 0, "Major_coeff" = 0, "Major_n" = 0, "Major_x2" = 0, "Major_other" = 0, "affectsConclusion" = NA, "error_typo" = 0, "error_specification" = 0, "error_analysis" = 0, "error_data" = 0, "error_unidentified" = 0, "Author_Assistance" = NA, "resolved_typo" = 0, "resolved_specification" = 0, "resolved_analysis" = 0, "resolved_data" = 0, "correctionSuggested" = NA, "correctionPublished" = NA)
+```
+
+## Step 1: Load packages
+
+```{r}
+library(tidyverse) # for data munging
+library(knitr) # for kable table formating
+library(haven) # import and export 'SPSS', 'Stata' and 'SAS' Files
+library(readxl) # import excel files
+library(CODreports) # custom report functions
+library(psych) # descriptive
+library(powerAnalysis) # cross-check effect sizes
+library(lsr) # for effect size calculation
+```
+
+## Step 2: Load data
+
+```{r}
+dat_original<-read_excel("data/data1.xls")
+```
+
+## Step 3: Tidy data
+
+```{r}
+# remove variable descriptions from first row.
+dat <- dat_original[-1,]
+
+# removed Ps who fail attention check, row = c(6,11,72)
+dat <- dat[-c(6,11,72),]
+
+# make DVs numeric
+dat$`Low Blame` <- as.numeric(dat$`Low Blame`)
+dat$`High Blame` <- as.numeric(dat$`High Blame`)
+
+# make display order a factor
+dat$`Display Order` <- as.factor(dat$`Display Order`)
+
+dat<-data.frame(dat)
+```
+
+## Step 4: Run analysis
+
+### Descriptive statistics  
+> low blame condition (M = -17.84, SD = 33.31)  
+ high blame condition (M = 8.90, SD = 39.16)  
+
+```{r}
+lb <- dat %>% pull(Low.Blame)
+hb <- dat %>% pull(High.Blame)
+
+reportObject <- compareValues2(reportedValue = "-17.84", obtainedValue = mean(lb), valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "33.31", obtainedValue = sd(lb), valueType = 'sd')
+reportObject <- compareValues2(reportedValue = "8.90", obtainedValue = mean(hb), valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "39.16", obtainedValue = sd(hb), valueType = 'sd')
+```
+
+> On the whole, 31% of participants in the low blame condition and 60% of subjects in the high blame condition gave answers above the midpoint.  
+
+```{r}
+# scale midpoint is 0
+lb_prop <- dat %>% select(Low.Blame) %>% filter(Low.Blame>0) %>% nrow() / dat %>% select(Low.Blame) %>% nrow()
+hb_prop <- dat %>% select(High.Blame) %>% filter(High.Blame>0) %>% nrow() / dat %>% select(High.Blame) %>% nrow()
+
+# reportObject <- compareValues2(reportedValue = ".31", obtainedValue = lb_prop, valueType = 'n')
+reportObject <- compareValues2(reportedValue = ".60", obtainedValue = hb_prop, valueType = 'n')
+```
+
+**NOTE we initially encounterd an error for low blame (commented out above): it appears that the authors reported percent greater than or equal midpoint, instead of greater than. An author confirmed this was the case - the article should have said greater than or equal to midpoint, as below:**
+
+```{r}
+lb_prop_revised <- dat %>% select(Low.Blame) %>% filter(Low.Blame>=0) %>% nrow() / dat %>% select(Low.Blame) %>% nrow()
+reportObject <- compareValues2(reportedValue = ".31", obtainedValue = lb_prop_revised, valueType = 'n')
+```
+
+### Inferential statistics  
+> Participants were more likely to say that an agent ought to keep a promise they can't keep in the high blame condition (M = 8.90, SD = 39.16) than in the low blame condition (M = -17.84, SD = 33.31), t(79) = -4.62, p < 0.001, d = 0.74.  
+
+```{r}
+# paired sample t-test
+t.out <- t.test(dat$Low.Blame, dat$High.Blame, paired = T)
+# Cohen's D = t*sqrt(2/n)
+d <- cohensD(dat$Low.Blame, dat$High.Blame)
+
+reportObject <- compareValues2(reportedValue ="79", obtainedValue = t.out$parameter, valueType = 'df')
+reportObject <- compareValues2(reportedValue ="-4.26", obtainedValue = t.out$statistic, valueType = 't')
+reportObject <- compareValues2(reportedValue ="eyeballMATCH", obtainedValue = t.out$p.value, valueType = 'p')
+reportObject <- compareValues2(reportedValue ="0.74", obtainedValue = d, valueType = 'es')
+```
+
+> Importantly, the judgments in the high blame condition were significantly above the midpoint, t(79) = 2.03, p = 0.045, d = 0.65.  
+
+```{r}
+t.out <- t.test(dat$High.Blame)
+# Cohen's D
+d <- cohensD(dat$High.Blame)
+
+reportObject <- compareValues2(reportedValue = "79", obtainedValue = t.out$parameter, valueType = 'df')
+reportObject <- compareValues2(reportedValue = "2.03", obtainedValue = t.out$statistic, valueType = 't')
+reportObject <- compareValues2(reportedValue = "0.045", obtainedValue = t.out$p.value, valueType = 'p')
+reportObject <- compareValues2(reportedValue = "0.65", obtainedValue = d, valueType = 'es')
+```
+
+**Error for d**
+
+NB - author confirmed there is an error here - the correct value is .23. The source of the error is unclear.
+
+> There were no significant order effects for whether participants read low blame first (M = -22.05, SD = 32.89) or second (M = -13.18, SD = 33.59; p = .24) or high blame first (M = 9.57, SD = 40.96) or second (M = 8.16, SD = 37.61; p = .87).  
+
+**correct**
+
+Low blame:
+
+```{r}
+#t-test
+low1 <- as.numeric(dat[dat$Display.Order==1, c("Low.Blame")])
+low2 <- as.vector(dat[dat$Display.Order==2, c("Low.Blame")])
+t.low <- t.test(low1,low2)
+t.low
+
+# descriptives
+low.descrip <- dat %>%
+  group_by(Display.Order) %>%
+  summarize(n=length(Low.Blame),
+            mean=mean(Low.Blame,na.rm=T),
+            sd=sd(Low.Blame,na.rm=T))
+
+low.descrip
+```
+
+Compare values for the low condition.
+
+```{r}
+# first
+reportObject <- compareValues2(reportedValue = "-22.05", obtainedValue = low.descrip$mean[1], valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "32.89", obtainedValue = low.descrip$sd[1], valueType = 'sd')
+
+# second
+reportObject <- compareValues2(reportedValue = "-13.18", obtainedValue = low.descrip$mean[2], valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "33.59", obtainedValue = low.descrip$sd[2], valueType = 'sd')
+
+# p.value
+reportObject <- compareValues2(reportedValue = ".24", obtainedValue = t.low$p.value, valueType = 'p')
+```
+
+Compute values for the high blame condition.
+
+```{r}
+# t-test
+high1 <- as.numeric(dat[dat$Display.Order==1, c("High.Blame")])
+high2 <- as.vector(dat[dat$Display.Order==2, c("High.Blame")])
+t.high <- t.test(high1,high2)
+t.high
+
+# descriptives
+high.descrip <- dat %>%
+  group_by(Display.Order) %>%
+  summarize(n=length(High.Blame),
+            mean=mean(High.Blame,na.rm=T),
+            sd=sd(High.Blame,na.rm=T))
+high.descrip
+```
+
+Compare values for the high blame condition.
+
+```{r}
+# first
+reportObject <- compareValues2(reportedValue = "9.57", obtainedValue = high.descrip$mean[1], valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "40.96", obtainedValue = high.descrip$sd[1], valueType = 'sd')
+
+# second
+reportObject <- compareValues2(reportedValue = "8.16", obtainedValue = high.descrip$mean[2], valueType = 'mean')
+reportObject <- compareValues2(reportedValue = "37.61", obtainedValue = high.descrip$sd[2], valueType = 'sd')
+
+# p.value
+reportObject <- compareValues2(reportedValue = ".87", obtainedValue = t.high$p.value, valueType = 'p')
+```
+
+## Step 5: Conclusion
+
+The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint. The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  NB - authors have confirmed this.
+
+There is a major error for one of the effect sizes. The likely cause is not apparent, but perhaps could be a copy and paste error. NB - authors have confirmed this is an error, but do not know the source.
+
+```{r}
+reportObject$Article_ID <- "OvGDB"
+reportObject$affectsConclusion <- "no"
+reportObject$error_typo <- 0
+reportObject$error_specification <- 0
+reportObject$error_analysis <- 1
+reportObject$error_data <- 0
+reportObject$error_unidentified <- 1
+reportObject$Author_Assistance <- T
+reportObject$resolved_typo <- 0
+reportObject$resolved_specification <- 0
+reportObject$resolved_analysis <- 0
+reportObject$resolved_data <- 0
+reportObject$correctionSuggested <- "yes"
+reportObject$correctionPublished <- F
+
+# decide on final outcome
+if(reportObject$Decision_Errors > 0 | reportObject$Major_Numerical_Errors > 0 | reportObject$Insufficient_Information_Errors > 0){
+  reportObject$finalOutcome <- "Failure"
+  if(reportObject$Author_Assistance == T){
+    reportObject$finalOutcome <- "Failure despite author assistance"
+  }
+}else{
+  reportObject$finalOutcome <- "Success"
+  if(reportObject$Author_Assistance == T){
+    reportObject$finalOutcome <- "Success with author assistance"
+  }
+}
+
+# save the report object
+filename <- paste0("reportObject_", reportObject$Article_ID,".csv")
+write_csv(reportObject, filename)
+```
+
+## Report Object
+
+```{r, echo = FALSE}
+# display report object in chunks
+kable(reportObject[2:10], align = 'l')
+kable(reportObject[11:20], align = 'l')
+kable(reportObject[21:25], align = 'l')
+kable(reportObject[26:30], align = 'l')
+kable(reportObject[31:35], align = 'l')
+kable(reportObject[36:40], align = 'l')
+kable(reportObject[41:45], align = 'l')
+kable(reportObject[46:51], align = 'l')
+kable(reportObject[52:57], align = 'l')
+```
+
+## Session information
+
+```{r session_info, include=TRUE, echo=TRUE, results='markup'}
+devtools::session_info()
+```
