@@ -102,7 +102,7 @@ hb_prop <- dat %>% select(High.Blame) %>% filter(High.Blame>0) %>% nrow() / dat 
 reportObject <- compareValues2(reportedValue = ".60", obtainedValue = hb_prop, valueType = 'n')
 ```
 
-**NOTE we initially encounterd an error for low blame (commented out above): it appears that the authors reported percent greater than or equal midpoint, instead of greater than. An author confirmed this was the case - the article should have said greater than or equal to midpoint, as below:**
+**NOTE we initially encounterd an error for low blame (commented out above): however the authors have told us that the article should have said greater than or equal to midpoint, as below:**
 
 ```{r}
 lb_prop_revised <- dat %>% select(Low.Blame) %>% filter(Low.Blame>=0) %>% nrow() / dat %>% select(Low.Blame) %>% nrow()
@@ -214,7 +214,7 @@ reportObject <- compareValues2(reportedValue = ".87", obtainedValue = t.high$p.v
 
 ## Step 5: Conclusion
 
-The first large numerical error is related to the percent of people in the Low Blame condition who were above DV midpoint. The likely cause is that the authors accidently reported the percent of people greater than **or equal to** the midpoint for Low Blame, instead of those greater than the midpoint.  NB - authors have confirmed this.
+We initially encountered a major error related to the percentage of people in the Low Blame condition who were above DV midpoint. However, after corresponding with the authors it appears that they accidently wrote "greater than the midpoint" instead of "greater than **or equal to**" the midpoint. With this information we could successfully reproduce the reported value.
 
 There is a major error for one of the effect sizes. The likely cause is not apparent, but perhaps could be a copy and paste error. NB - authors have confirmed this is an error, but do not know the source.
 
