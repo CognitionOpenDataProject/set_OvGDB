@@ -228,7 +228,7 @@ reportObject$error_data <- 0
 reportObject$error_unidentified <- 1
 reportObject$Author_Assistance <- T
 reportObject$resolved_typo <- 0
-reportObject$resolved_specification <- 0
+reportObject$resolved_specification <- 1
 reportObject$resolved_analysis <- 0
 reportObject$resolved_data <- 0
 reportObject$correctionSuggested <- "yes"
